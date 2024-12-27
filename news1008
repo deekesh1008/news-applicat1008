@@ -1,0 +1,51 @@
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client';
+
+const NewsFetcher = () => {
+  const [dataSet, updateDataSet] = useState([]);
+  const [isLoading, toggleLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  const KEY = 'your_newsapi_key_here'; // Substitute with a valid key from https://newsapi.org/
+  const ENDPOINT = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${KEY}`;
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const res = await fetch(ENDPOINT);
+        if (!res.ok) {
+          throw new Error(`Response error! Code: ${res.status}`);
+        }
+        const parsed = await res.json();
+        updateDataSet(parsed.articles);
+        toggleLoading(false);
+      } catch (e) {
+        setFetchError(e.message);
+        toggleLoading(false);
+      }
+    };
+    getData();
+  }, []);
+
+  if (isLoading) return <p>Gathering insights...</p>;
+  if (fetchError) return <p>Oops! Something broke: {fetchError}</p>;
+
+  return (
+    <div style={{ fontFamily: 'Verdana, sans-serif', padding: '15px' }}>
+      <h1>Trending Buzz</h1>
+      {dataSet.map((item, idx) => (
+        <div key={idx} style={{ marginBottom: '18px' }}>
+          <h2>{item.title}</h2>
+          <p>{item.description}</p>
+          <a href={item.url} target="_blank" rel="noopener noreferrer">
+            Explore
+          </a>
+          <hr />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const mountPoint = ReactDOM.createRoot(document.getElementById('app-root'));
+mountPoint.render(<NewsFetcher />);
